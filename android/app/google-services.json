@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "295040825125",
+    "project_id": "fingerprintmis",
+    "storage_bucket": "fingerprintmis.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295040825125:android:4c54f0ecb19161979acccc",
+        "android_client_info": {
+          "package_name": "com.example.finger_print_mis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeITakbC9807lTM9jwWpYeN4MXigFcd8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
