@@ -64,11 +64,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[200],
+      backgroundColor: const Color.fromARGB(255, 14, 40, 235),
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('unilak.ac.rw'),
         centerTitle: true,
-        backgroundColor: Colors.lightBlue[400],
+        backgroundColor: const Color.fromARGB(255, 6, 21, 234),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Login',
+                'Login to Account',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                   : ElevatedButton(
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
+                        backgroundColor: const Color.fromARGB(255, 8, 0, 255),
                         minimumSize: const Size.fromHeight(50),
                       ),
                       child: const Text(
@@ -149,6 +149,18 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(12),
+        color: Colors.transparent,
+        child: const Text(
+          'Copyright © UNILAK 2025',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            fontSize: 14,
           ),
         ),
       ),
