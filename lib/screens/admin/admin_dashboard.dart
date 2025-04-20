@@ -140,62 +140,86 @@ class _AdminDashboardState extends State<AdminDashboard> {
               title: const Text('Logout'),
               onTap: () => _logout(context),
             ),
+            ListTile(
+              leading: const Icon(Icons.manage_accounts),
+              title: const Text('Manage Course'),
+              onTap: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context).pushNamed('/manage-course-offerings');
+              },
+            ),
           ],
         ),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('created_courses').snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final courses = snapshot.data?.docs ?? [];
-          if (courses.isEmpty) {
-            return const Center(child: Text('No courses found.'));
-          }
-          return ListView.builder(
-            itemCount: courses.length,
-            itemBuilder: (context, index) {
-              final course = courses[index];
-              final data = course.data() as Map<String, dynamic>;
-              final posted = data['posted'] ?? false;
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: ListTile(
-                  title: Text(data['courseName'] ?? 'No Course Name'),
-                  subtitle: Text('Instructor: ${data['instructorName'] ?? ''}\nDepartment: ${data['department'] ?? ''}\nPosted: $posted'),
-                  isThreeLine: true,
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) async {
-                      if (value == 'edit') {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => CreateCoursePage(
-                              courseId: course.id,
-                              courseData: data,
-                            ),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        await FirebaseFirestore.instance.collection('created_courses').doc(course.id).delete();
-                      } else if (value == 'post') {
-                        await FirebaseFirestore.instance.collection('created_courses').doc(course.id).update({'posted': true});
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                      if (!posted) const PopupMenuItem(value: 'post', child: Text('Post to Students')),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.manage_accounts),
+              label: const Text('Manage Students'),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/manage-students');
+              },
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('created_courses').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final courses = snapshot.data?.docs ?? [];
+                if (courses.isEmpty) {
+                  return const Center(child: Text('No courses found.'));
+                }
+                return ListView.builder(
+                  itemCount: courses.length,
+                  itemBuilder: (context, index) {
+                    final course = courses[index];
+                    final data = course.data() as Map<String, dynamic>;
+                    final posted = data['posted'] ?? false;
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: ListTile(
+                        title: Text(data['courseName'] ?? 'No Course Name'),
+                        subtitle: Text('Instructor: ${data['instructorName'] ?? ''}\nDepartment: ${data['department'] ?? ''}\nPosted: $posted'),
+                        isThreeLine: true,
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) async {
+                            if (value == 'edit') {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => CreateCoursePage(
+                                    courseId: course.id,
+                                    courseData: data,
+                                  ),
+                                ),
+                              );
+                            } else if (value == 'delete') {
+                              await FirebaseFirestore.instance.collection('created_courses').doc(course.id).delete();
+                            } else if (value == 'post') {
+                              await FirebaseFirestore.instance.collection('created_courses').doc(course.id).update({'posted': true});
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            if (!posted) const PopupMenuItem(value: 'post', child: Text('Post to Students')),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

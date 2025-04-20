@@ -11,6 +11,9 @@ import '../../screens/admin/faculty_management_screen.dart';
 import '../../screens/admin/department_management_screen.dart';
 import '../../screens/admin/course_management_screen.dart';
 import '../../screens/admin/session_manager_screen.dart';
+import '../../screens/admin/manage_course_offerings_page.dart';
+import '../../screens/student/view_available_course.dart';
+import '../../screens/admin/manage_student_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -36,6 +39,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => const CourseManagementScreen());
     case AppRoutes.sessionManager:
       return MaterialPageRoute(builder: (_) => const SessionManagerScreen());
+    case AppRoutes.manageCourseOfferings:
+      return MaterialPageRoute(builder: (_) => const ManageCourseOfferingsPage());
+    case AppRoutes.manageStudents:
+      return MaterialPageRoute(builder: (_) => const ManageStudentPage());
+    case AppRoutes.studentAvailableCourses:
+      return MaterialPageRoute(builder: (_) => const ViewAvailableCourse());
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(

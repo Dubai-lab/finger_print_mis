@@ -12,4 +12,8 @@ class AppRoutes {
   static const String departmentManagement = '/department-management';
   static const String courseManagement = '/course-management';
   static const String sessionManager = '/session-manager';
+
+  static const String manageCourseOfferings = '/manage-course-offerings';
+  static const String manageStudents = '/manage-students';
+  static const String studentAvailableCourses = '/student-available-courses';
 }

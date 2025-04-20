@@ -18,6 +18,9 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
+  String? _selectedFacultyId;
+  String? _selectedDepartmentId;
+
   final TextEditingController _facultyController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _programmeController = TextEditingController();
@@ -41,7 +44,27 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
           password: _passwordController.text.trim(),
         );
 
-        // Save additional user info in Firestore
+        // Fetch faculty name from faculties collection
+        String? facultyName;
+        if (_selectedFacultyId != null) {
+          final facultyDoc = await FirebaseFirestore.instance.collection('faculties').doc(_selectedFacultyId).get();
+          if (facultyDoc.exists) {
+            final data = facultyDoc.data() as Map<String, dynamic>?;
+            facultyName = data?['name'];
+          }
+        }
+
+        // Fetch department name from departments collection
+        String? departmentName;
+        if (_selectedDepartmentId != null) {
+          final departmentDoc = await FirebaseFirestore.instance.collection('departments').doc(_selectedDepartmentId).get();
+          if (departmentDoc.exists) {
+            final data = departmentDoc.data() as Map<String, dynamic>?;
+            departmentName = data?['name'];
+          }
+        }
+
+        // Save additional user info in Firestore with names instead of IDs
         await FirebaseFirestore.instance.collection('students').doc(userCredential.user?.uid).set({
           'registrationNumber': _regNumberController.text.trim(),
           'firstName': _firstNameController.text.trim(),
@@ -50,8 +73,8 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
           'campus': _selectedCampus,
           'phone': _phoneController.text.trim(),
           'country': _countryController.text.trim(),
-          'faculty': _facultyController.text.trim(),
-          'department': _departmentController.text.trim(),
+          'faculty': facultyName,
+          'department': departmentName,
           'programme': _programmeController.text.trim(),
           'email': _emailController.text.trim(),
           'role': 'student',
@@ -84,6 +107,15 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
       }
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    // Removed _fetchFaculties call since StreamBuilder is used now
+  }
+
+  // Removed _fetchFaculties and _fetchDepartments methods to use StreamBuilder instead
+
 
   @override
   Widget build(BuildContext context) {
@@ -207,31 +239,110 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _facultyController,
-                decoration: const InputDecoration(
-                  labelText: 'Faculty',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter Faculty';
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('faculties').orderBy('name').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const SizedBox.shrink();
                   }
-                  return null;
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  final faculties = snapshot.data!.docs;
+                  return DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Faculty',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: _selectedFacultyId,
+                    items: faculties.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return DropdownMenuItem<String>(
+                        value: doc.id,
+                        child: Text(data['name'] ?? 'No Name'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedFacultyId = value;
+                        _selectedDepartmentId = null;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select Faculty';
+                      }
+                      return null;
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _departmentController,
-                decoration: const InputDecoration(
-                  labelText: 'Department',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter Department';
-                  }
-                  return null;
+              (_selectedFacultyId == null)
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'Please select a faculty first',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('departments')
+                          .where('facultyId', isEqualTo: _selectedFacultyId)
+                          //.orderBy('name') // Removed to avoid composite index error
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return Container(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Error loading departments: \${snapshot.error}',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          );
+                        }
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        }
+                  final departments = snapshot.data!.docs;
+                  // Debug print number of departments fetched
+                  // print('Departments fetched: \${departments.length}');
+                  return DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Department',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: _selectedDepartmentId,
+                    items: departments.isEmpty
+                        ? [
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('No departments available'),
+                            )
+                          ]
+                        : departments.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return DropdownMenuItem<String>(
+                              value: doc.id,
+                              child: Text(data['name'] ?? 'No Name'),
+                            );
+                          }).toList(),
+                    onChanged: departments.isEmpty
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedDepartmentId = value;
+                            });
+                          },
+                    validator: (value) {
+                      if (departments.isNotEmpty && (value == null || value.isEmpty)) {
+                        return 'Please select Department';
+                      }
+                      return null;
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 16),
