@@ -31,6 +31,7 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
   final List<String> _campuses = ['Kigali', 'Nyanza', 'Rwamagane'];
 
   bool _isLoading = false;
+  bool _fingerprintRegistered = false;
 
   Future<void> _register() async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -78,14 +79,8 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
           'programme': _programmeController.text.trim(),
           'email': _emailController.text.trim(),
           'role': 'student',
+          'fingerprintRegistered': _fingerprintRegistered,
           'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        // Call Cloud Function to send welcome email
-        final HttpsCallable sendWelcomeEmail = FirebaseFunctions.instance.httpsCallable('sendWelcomeEmail');
-        await sendWelcomeEmail.call(<String, dynamic>{
-          'email': _emailController.text.trim(),
-          'tempPassword': _passwordController.text.trim(),
         });
 
         ScaffoldMessenger.of(context).showSnackBar(

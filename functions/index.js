@@ -1,43 +1,51 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
-
 admin.initializeApp();
 
-// Configure SMTP transport for Gmail with app password
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // use SSL
-  auth: {
-    user: "eg8217178@gmail.com",
-    pass: "jqbykuydtedadjar",
-  },
-});
+const db = admin.firestore();
 
-// Cloud Function to send welcome email after admin registers a user
-exports.sendWelcomeEmail = functions.https.onCall(async (data, context) => {
-  const email = data.email;
-  const tempPassword = data.tempPassword;
+// Cloud Function to clean up expired pending course offerings for students
+// eslint-disable-next-line max-len
+exports.cleanupExpiredPendingCourses = functions.pubsub.schedule("every 1 hours").onRun(async (context) => {
+  const now = admin.firestore.Timestamp.now();
+  // eslint-disable-next-line max-len
+  const cutoff = new Date(now.toDate().getTime() - 48 * 60 * 60 * 1000); // 48 hours ago
 
-  if (!email || !tempPassword) {
+  const courseOfferingsSnapshot = await db.collection("course_offerings").get();
+
+  for (const doc of courseOfferingsSnapshot.docs) {
+    const data = doc.data();
+    const pendingStudents = data.pendingStudents || {};
     // eslint-disable-next-line max-len
-    throw new functions.https.HttpsError("invalid-argument", "Email and temporary password are required.");
+    const joinedStudents = data.joinedStudents || []; // Assuming you track joined students here
+
+    let updated = false;
+    const newPendingStudents = {};
+
+    for (const [studentId, sentTimestamp] of Object.entries(pendingStudents)) {
+      // eslint-disable-next-line max-len
+      const sentDate = sentTimestamp.toDate ? sentTimestamp.toDate() : new Date(sentTimestamp);
+      if (sentDate < cutoff) {
+        // Check if student has joined, if not remove from pending
+        if (!joinedStudents.includes(studentId)) {
+          updated = true;
+          // Do not add to newPendingStudents to remove
+        } else {
+          newPendingStudents[studentId] = sentTimestamp;
+        }
+      } else {
+        newPendingStudents[studentId] = sentTimestamp;
+      }
+    }
+
+    if (updated) {
+      await doc.ref.update({
+        pendingStudents: newPendingStudents,
+      });
+      // eslint-disable-next-line max-len
+      console.log(`Cleaned up expired pending students for course offering ${doc.id}`);
+    }
   }
 
-  const mailOptions = {
-    from: `"FingerprintMIS" <eg8217178@gmail.com>`,
-    to: email,
-    subject: "Welcome to FingerprintMIS",
-    // eslint-disable-next-line max-len
-    text: `Welcome to FingerprintMIS!\n\nYour login email: ${email}\nYour temporary password: ${tempPassword}\n\nPlease change your password after your first login.`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return {success: true};
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw new functions.https.HttpsError("internal", "Failed to send email");
-  }
+  return null;
 });

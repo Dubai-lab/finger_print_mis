@@ -19,8 +19,13 @@ class _ViewAvailableCourseState extends State<ViewAvailableCourse> {
       return;
     }
     try {
-      await FirebaseFirestore.instance.collection('courses').doc(courseId).update({
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection('courses').doc(courseId).update({
         'joinedStudents': FieldValue.arrayUnion([user.uid]),
+      });
+      // Update student's joinedCourses list
+      await firestore.collection('students').doc(user.uid).update({
+        'joinedCourses': FieldValue.arrayUnion([courseId]),
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Joined course successfully')),

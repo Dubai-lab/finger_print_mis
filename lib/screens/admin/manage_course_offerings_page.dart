@@ -212,6 +212,19 @@ class _ManageCourseOfferingsPageState extends State<ManageCourseOfferingsPage> {
                                   // Update posted field in course_offerings
                                   await _firestore.collection('course_offerings').doc(doc.id).update({
                                     'posted': true,
+                                    'pendingStudents': {}, // Initialize empty map for pending students
+                                  });
+
+                                  // Fetch all students to add them to pendingStudents with current timestamp
+                                  final studentsSnapshot = await _firestore.collection('students').get();
+                                  Map<String, dynamic> pendingStudentsMap = {};
+                                  final now = DateTime.now().toUtc();
+                                  for (var studentDoc in studentsSnapshot.docs) {
+                                    pendingStudentsMap[studentDoc.id] = now;
+                                  }
+                                  // Update course_offerings with pendingStudents map
+                                  await _firestore.collection('course_offerings').doc(doc.id).update({
+                                    'pendingStudents': pendingStudentsMap,
                                   });
 
                                   ScaffoldMessenger.of(context).showSnackBar(

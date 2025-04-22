@@ -15,7 +15,7 @@ class StudentDashboard extends StatefulWidget {
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
-  bool _showRecentlyAccessed = false;
+  // Removed _showRecentlyAccessed flag and related functions as recently accessed feature is removed
 
   void _logout(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -399,6 +399,21 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      // Removed RecentlyAccessedDropdown from under 'View Available Class' button as requested
+                      // SizedBox(
+                      //   width: double.infinity,
+                      //   child: Column(
+                      //     crossAxisAlignment: CrossAxisAlignment.start,
+                      //     children: [
+                      //       if (_showDropdown) ...[
+                      //         const SizedBox(height: 12),
+                      //         const RecentlyAccessedDropdown(),
+                      //       ] else
+                      //         const SizedBox.shrink(),
+                      //     ],
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -416,7 +431,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            _showRecentlyAccessed = true;
+                            _showDropdown = !_showDropdown;
                           });
                         },
                         child: Container(
@@ -428,18 +443,21 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Text(
+                            children: [
+                              const Text(
                                 'Recently Accessed Classes',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                               ),
-                              SizedBox(width: 8),
-                              Text('👍', style: TextStyle(fontSize: 18)),
+                              const SizedBox(width: 8),
+                              Icon(
+                                _showDropdown ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                size: 24,
+                              ),
                             ],
                           ),
                         ),
                       ),
-                      if (_showRecentlyAccessed) ...[
+                      if (_showDropdown) ...[
                         const SizedBox(height: 12),
                         const RecentlyAccessedDropdown(),
                       ],
@@ -453,6 +471,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
       ),
     );
   }
+
+  bool _showDropdown = false;
 
   Widget _buildInfoRow(String title, String value, {bool isLast = false}) {
     return Padding(
