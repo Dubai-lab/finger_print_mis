@@ -17,7 +17,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedInstructorId;
-  String? _selectedDepartmentId;
+  String? _selectedDepartmentName;
   String? _selectedCourseId;
 
   DateTime? _startDate;
@@ -69,7 +69,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     }
 
     if (_selectedInstructorId == null ||
-        _selectedDepartmentId == null ||
+        _selectedDepartmentName == null ||
         _selectedCourseId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select instructor, department, and course')),
@@ -80,7 +80,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     try {
       await _firestore.collection('course_offerings').add({
         'instructorId': _selectedInstructorId,
-        'departmentId': _selectedDepartmentId,
+        'departmentName': _selectedDepartmentName,
         'courseId': _selectedCourseId,
         'startDate': _startDate,
         'endDate': _endDate,
@@ -92,7 +92,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
       _formKey.currentState?.reset();
       setState(() {
         _selectedInstructorId = null;
-        _selectedDepartmentId = null;
+        _selectedDepartmentName = null;
         _selectedCourseId = null;
         _startDate = null;
         _endDate = null;
@@ -165,17 +165,17 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                       labelText: 'Select Department',
                       border: OutlineInputBorder(),
                     ),
-                    value: _selectedDepartmentId,
+                    value: _selectedDepartmentName,
                     items: departments.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
                       return DropdownMenuItem<String>(
-                        value: doc.id,
+                        value: data['name'],
                         child: Text(data['name'] ?? 'No Name'),
                       );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        _selectedDepartmentId = value;
+                        _selectedDepartmentName = value;
                         _selectedCourseId = null; // reset course selection
                       });
                     },
@@ -185,11 +185,11 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                 },
               ),
               const SizedBox(height: 16),
-              if (_selectedDepartmentId != null)
+              if (_selectedDepartmentName != null)
                 StreamBuilder<QuerySnapshot>(
                 stream: _firestore
                     .collection('department_course')
-                    .where('departmentId', isEqualTo: _selectedDepartmentId)
+                    .where('departmentName', isEqualTo: _selectedDepartmentName)
                     //.orderBy('name') // Removed to avoid Firestore composite index error
                     .snapshots(),
                   builder: (context, snapshot) {

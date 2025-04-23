@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../provider/auth_provider.dart';
+import 'profile_picture_manager.dart';
 
 class InstructorDashboard extends StatefulWidget {
   const InstructorDashboard({Key? key}) : super(key: key);
@@ -28,12 +29,16 @@ class _InstructorDashboardState extends State<InstructorDashboard> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.deepPurple,
-              ),
-              child: Center(
-                child: Text(
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ProfilePictureManager(),
+                const SizedBox(height: 12),
+                const Text(
                   'Instructor Menu',
                   style: TextStyle(
                     color: Colors.white,
@@ -42,17 +47,25 @@ class _InstructorDashboardState extends State<InstructorDashboard> {
                     letterSpacing: 1.2,
                   ),
                 ),
-              ),
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.logout, color: Colors.deepPurple),
-              title: Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () async {
-                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                await authProvider.logout();
-                Navigator.of(context).pushReplacementNamed('/login');
-              },
-            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.person, color: Colors.deepPurple),
+            title: Text('Profile', style: TextStyle(fontWeight: FontWeight.w600)),
+            onTap: () {
+              Navigator.of(context).pushNamed('/instructor-profile');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.deepPurple),
+            title: Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
+            onTap: () async {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              await authProvider.logout();
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+          ),
           ],
         ),
       ),
@@ -156,7 +169,7 @@ class _InstructorDashboardState extends State<InstructorDashboard> {
                                         },
                                         child: const Text('View Attendance'),
                                       ),
-                                      const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
                                       FutureBuilder<QuerySnapshot>(
                                         future: FirebaseFirestore.instance
                                             .collection('attendance')
@@ -165,27 +178,49 @@ class _InstructorDashboardState extends State<InstructorDashboard> {
                                             .get(),
                                         builder: (context, snapshot) {
                                           final hasAttendance = snapshot.hasData && snapshot.data!.docs.isNotEmpty;
-                                          return ElevatedButton.icon(
-                                            onPressed: hasAttendance
-                                                ? () {
-                                                    // TODO: Implement fingerprint scanning logic here
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('Fingerprint scanning started...')),
-                                                    );
-                                                  }
-                                                : () {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('No Attendance created')),
-                                                    );
-                                                  },
-                                            icon: const Icon(Icons.fingerprint),
-                                            label: const Text('Scan Print'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: hasAttendance ? Colors.deepPurple : Colors.grey,
-                                              foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                            ),
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              ElevatedButton.icon(
+                                                onPressed: hasAttendance
+                                                    ? () {
+                                                        // TODO: Implement fingerprint scanning logic here
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          const SnackBar(content: Text('Fingerprint scanning started...')),
+                                                        );
+                                                      }
+                                                    : () {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          const SnackBar(content: Text('No Attendance created')),
+                                                        );
+                                                      },
+                                                icon: const Icon(Icons.fingerprint),
+                                                label: const Text('Scan Print'),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: hasAttendance ? Colors.deepPurple : Colors.grey,
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              ElevatedButton.icon(
+                                                onPressed: () {
+                                                  Navigator.of(context).pushNamed(
+                                                    '/instructor-course-students',
+                                                    arguments: {'courseOfferingId': courseOffering.id},
+                                                  );
+                                                },
+                                                icon: const Icon(Icons.group),
+                                                label: const Text('View Students'),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.deepPurple,
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
                                           );
                                         },
                                       ),

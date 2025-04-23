@@ -91,11 +91,12 @@ class _SessionManagerScreenState extends State<SessionManagerScreen> with Single
           itemBuilder: (context, index) {
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
+            final facultyName = data['facultyName'] ?? 'Unknown Faculty';
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
               child: ListTile(
                 title: Text(data['name'] ?? 'No Name'),
-                subtitle: Text('Faculty ID: ${data['facultyId'] ?? 'N/A'}'),
+                subtitle: Text('Faculty: $facultyName'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -121,7 +122,7 @@ class _SessionManagerScreenState extends State<SessionManagerScreen> with Single
     );
   }
 
-  Widget _buildCourseTab() {
+Widget _buildCourseTab() {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore.collection('department_course').orderBy('name').snapshots(),
       builder: (context, snapshot) {
@@ -144,7 +145,7 @@ class _SessionManagerScreenState extends State<SessionManagerScreen> with Single
               margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
               child: ListTile(
                 title: Text(data['name'] ?? 'No Name'),
-                subtitle: Text('Department ID: ${data['departmentId'] ?? 'N/A'}'),
+                subtitle: Text('Department: ${data['departmentName'] ?? 'N/A'}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

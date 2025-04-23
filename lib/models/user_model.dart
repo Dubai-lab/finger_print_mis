@@ -10,6 +10,7 @@ class UserModel {
   final String email;
   final String role;
   final Timestamp createdAt;
+  final String? profilePictureUrl;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     required this.email,
     required this.role,
     required this.createdAt,
+    this.profilePictureUrl,
   });
 
   String get fullName {
@@ -37,6 +39,7 @@ class UserModel {
       email: map['email'] ?? '',
       role: map['role'] ?? '',
       createdAt: map['createdAt'] ?? Timestamp.now(),
+      profilePictureUrl: map['profilePictureUrl'],
     );
   }
 
@@ -48,6 +51,7 @@ class UserModel {
       'email': email,
       'role': role,
       'createdAt': createdAt,
+      'profilePictureUrl': profilePictureUrl,
     };
   }
 }

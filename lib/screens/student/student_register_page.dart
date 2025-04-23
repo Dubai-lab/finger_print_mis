@@ -253,7 +253,7 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
                     items: faculties.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
                       return DropdownMenuItem<String>(
-                        value: doc.id,
+                        value: data['name'],
                         child: Text(data['name'] ?? 'No Name'),
                       );
                     }).toList(),
@@ -285,7 +285,7 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
                   : StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('departments')
-                          .where('facultyId', isEqualTo: _selectedFacultyId)
+                          .where('facultyName', isEqualTo: _selectedFacultyId)
                           //.orderBy('name') // Removed to avoid composite index error
                           .snapshots(),
                       builder: (context, snapshot) {
@@ -301,45 +301,43 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
                         if (!snapshot.hasData) {
                           return const CircularProgressIndicator();
                         }
-                  final departments = snapshot.data!.docs;
-                  // Debug print number of departments fetched
-                  // print('Departments fetched: \${departments.length}');
-                  return DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Department',
-                      border: OutlineInputBorder(),
-                    ),
-                    value: _selectedDepartmentId,
-                    items: departments.isEmpty
-                        ? [
-                            const DropdownMenuItem<String>(
-                              value: null,
-                              child: Text('No departments available'),
-                            )
-                          ]
-                        : departments.map((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            return DropdownMenuItem<String>(
-                              value: doc.id,
-                              child: Text(data['name'] ?? 'No Name'),
-                            );
-                          }).toList(),
-                    onChanged: departments.isEmpty
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _selectedDepartmentId = value;
-                            });
+                        final departments = snapshot.data!.docs;
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: 'Department',
+                            border: OutlineInputBorder(),
+                          ),
+                          value: _selectedDepartmentId,
+                          items: departments.isEmpty
+                              ? [
+                                  const DropdownMenuItem<String>(
+                                    value: null,
+                                    child: Text('No departments available'),
+                                  )
+                                ]
+                              : departments.map((doc) {
+                                  final data = doc.data() as Map<String, dynamic>;
+                                  return DropdownMenuItem<String>(
+                                    value: data['name'],
+                                    child: Text(data['name'] ?? 'No Name'),
+                                  );
+                                }).toList(),
+                          onChanged: departments.isEmpty
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _selectedDepartmentId = value;
+                                  });
+                                },
+                          validator: (value) {
+                            if (departments.isNotEmpty && (value == null || value.isEmpty)) {
+                              return 'Please select Department';
+                            }
+                            return null;
                           },
-                    validator: (value) {
-                      if (departments.isNotEmpty && (value == null || value.isEmpty)) {
-                        return 'Please select Department';
-                      }
-                      return null;
-                    },
-                  );
-                },
-              ),
+                        );
+                      },
+                    ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _programmeController,

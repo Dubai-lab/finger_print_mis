@@ -5,6 +5,7 @@ import '../../screens/auth/login_page.dart';
 import '../../screens/admin/admin_dashboard.dart';
 import '../../screens/student/student_dashboard.dart';
 import '../../screens/instructor/instructor_dashboard.dart';
+import '../../screens/instructor/instructor_profile.dart';
 import '../../screens/instructor/attendance_page.dart';
 import '../../screens/invigilator/invigilator_dashboard.dart';
 import '../../screens/admin/create_course_page.dart';
@@ -18,6 +19,7 @@ import '../../screens/admin/manage_student_page.dart';
 import '../../screens/admin/delete_recently_accessed_courses.dart';
 import '../../screens/instructor/manage_attendance.dart';
 import '../../screens/instructor/created_attendance_page.dart';
+import '../../screens/instructor/instructor_course_students.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -79,6 +81,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => const DeleteRecentlyAccessedCourses());
     case AppRoutes.createdAttendancePage:
       return MaterialPageRoute(builder: (_) => const CreatedAttendancePage());
+    case AppRoutes.instructorProfile:
+      return MaterialPageRoute(builder: (_) => const InstructorProfile());
+    case AppRoutes.instructorCourseStudents:
+      final args = settings.arguments as Map<String, dynamic>?;
+      final courseOfferingId = args?['courseOfferingId'] as String?;
+      if (courseOfferingId == null) {
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(child: Text('Missing courseOfferingId argument')),
+          ),
+        );
+      }
+      return MaterialPageRoute(
+        builder: (_) => InstructorCourseStudents(courseOfferingId: courseOfferingId),
+      );
     default:
       return MaterialPageRoute(
         builder: (_) => Scaffold(

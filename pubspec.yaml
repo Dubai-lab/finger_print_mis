@@ -52,6 +52,7 @@ dependencies:
   device_info_plus: ^11.3.3
   icons_plus: ^5.0.0
   cloud_functions: ^5.4.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

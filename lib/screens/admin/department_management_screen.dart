@@ -11,7 +11,7 @@ class DepartmentManagementScreen extends StatefulWidget {
 class _DepartmentManagementScreenState extends State<DepartmentManagementScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  String? _selectedFacultyId;
+  String? _selectedFacultyName;
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _departmentNameController = TextEditingController();
@@ -23,12 +23,13 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
     _departmentNameController.clear();
     setState(() {
       _editingDepartmentId = null;
+      _selectedFacultyName = null;
     });
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedFacultyId == null) {
+    if (_selectedFacultyName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a faculty')),
       );
@@ -42,7 +43,7 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
         // Update existing department
         await _firestore.collection('departments').doc(_editingDepartmentId).update({
           'name': name,
-          'facultyId': _selectedFacultyId,
+          'facultyName': _selectedFacultyName,
           'updatedAt': FieldValue.serverTimestamp(),
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +53,7 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
         // Create new department
         await _firestore.collection('departments').add({
           'name': name,
-          'facultyId': _selectedFacultyId,
+          'facultyName': _selectedFacultyName,
           'createdAt': FieldValue.serverTimestamp(),
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +73,7 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
     _departmentNameController.text = data['name'] ?? '';
     setState(() {
       _editingDepartmentId = doc.id;
-      _selectedFacultyId = data['facultyId'];
+      _selectedFacultyName = data['facultyName'];
     });
   }
 
@@ -124,17 +125,17 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
                     labelText: 'Select Faculty',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedFacultyId,
+                  value: _selectedFacultyName,
                   items: faculties.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     return DropdownMenuItem<String>(
-                      value: doc.id,
+                      value: data['name'],
                       child: Text(data['name'] ?? 'No Name'),
                     );
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedFacultyId = value;
+                      _selectedFacultyName = value;
                     });
                   },
                   validator: (value) {
@@ -183,13 +184,13 @@ class _DepartmentManagementScreenState extends State<DepartmentManagementScreen>
               ),
             ),
             const SizedBox(height: 20),
-            Expanded(
-              child: _selectedFacultyId == null
+              Expanded(
+              child: _selectedFacultyName == null
                   ? const Center(child: Text('Select a faculty to view departments'))
                   : StreamBuilder<QuerySnapshot>(
                       stream: _firestore
                           .collection('departments')
-                          .where('facultyId', isEqualTo: _selectedFacultyId)
+                          .where('facultyName', isEqualTo: _selectedFacultyName)
                           .orderBy('name')
                           .snapshots(),
                       builder: (context, snapshot) {

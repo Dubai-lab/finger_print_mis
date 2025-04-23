@@ -22,4 +22,8 @@ class AppRoutes {
   static const String recentlyAccessedCourses = '/recently-accessed-courses';
 
   static const String deleteRecentlyAccessedCourses = '/delete-recently-accessed-courses';
+
+  static const String instructorProfile = '/instructor-profile';
+
+  static const String instructorCourseStudents = '/instructor-course-students';
 }
